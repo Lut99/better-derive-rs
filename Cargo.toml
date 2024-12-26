@@ -1,0 +1,20 @@
+[package]
+name = "debug"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/Lut99/debug-rs"
+description = ""
+
+
+[lib]
+proc-macro = true
+
+
+[dependencies]
+proc-macro2 = "1.0.92"
+quote = "1.0.38"
+syn = "2.0.91"
+
+
+[features]
+default = []
