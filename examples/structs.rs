@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:12:07
 //  Last edited:
-//    09 Jan 2025, 01:24:37
+//    09 Jan 2025, 20:24:23
 //  Auto updated?
 //    Yes
 //
@@ -12,22 +12,35 @@
 //!   Shows that the crate works for structs.
 //
 
+use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::Debug;
+use better_derive::{Debug, Eq, Hash, PartialEq};
+
+
+/***** HELPER FUNCTIONS *****/
+#[inline]
+fn hash<T: std::hash::Hash>(obj: T) -> u64 {
+    let mut state = DefaultHasher::default();
+    obj.hash(&mut state);
+    state.finish()
+}
+
+
+
 
 
 /***** EXAMPLES *****/
 /// Example unit struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Foo;
 
 /// Example tuple struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Bar((), bool, String);
 
 /// Example struct struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Baz {
     a: (),
     b: bool,
@@ -36,10 +49,10 @@ struct Baz {
 
 
 
-struct DontImplementDebug;
+struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct PhantomStruct<T> {
     _f: PhantomData<T>,
 }
@@ -58,11 +71,25 @@ fn main() {
     assert_eq!(format!("{:#?}", Baz { a: (), b: true, c: "Hello, world!".into() }), "Baz {\n    a: (),\n    b: true,\n    c: \"Hello, world!\",\n}");
 
     assert_eq!(
-        format!("{:?}", PhantomStruct::<DontImplementDebug> { _f: PhantomData }),
-        "PhantomStruct { _f: PhantomData<structs::DontImplementDebug> }"
+        format!("{:?}", PhantomStruct::<DontImplementAnything> { _f: PhantomData }),
+        "PhantomStruct { _f: PhantomData<structs::DontImplementAnything> }"
     );
     assert_eq!(
-        format!("{:#?}", PhantomStruct::<DontImplementDebug> { _f: PhantomData }),
-        "PhantomStruct {\n    _f: PhantomData<structs::DontImplementDebug>,\n}"
+        format!("{:#?}", PhantomStruct::<DontImplementAnything> { _f: PhantomData }),
+        "PhantomStruct {\n    _f: PhantomData<structs::DontImplementAnything>,\n}"
     );
+
+
+
+    assert!(Foo == Foo);
+    assert!(Bar((), true, "Hello, world!".into()) == Bar((), true, "Hello, world!".into()));
+    assert!(Baz { a: (), b: true, c: "Hello, world!".into() } == Baz { a: (), b: true, c: "Hello, world!".into() });
+    assert!(PhantomStruct::<DontImplementAnything> { _f: PhantomData } == PhantomStruct::<DontImplementAnything> { _f: PhantomData });
+
+
+
+    assert_eq!(hash(Foo), 15130871412783076140);
+    assert_eq!(hash(Bar((), true, "Hello, world!".into())), 13134715174715772495);
+    assert_eq!(hash(Baz { a: (), b: true, c: "Hello, world!".into() }), 13134715174715772495);
+    assert_eq!(hash(PhantomStruct::<DontImplementAnything> { _f: PhantomData }), 15130871412783076140);
 }

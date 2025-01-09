@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:27:30
 //  Last edited:
-//    09 Jan 2025, 02:03:32
+//    09 Jan 2025, 19:26:14
 //  Auto updated?
 //    Yes
 //
@@ -38,19 +38,42 @@ fn generate_field_idents(fields: &Punctuated<Field, Token![,]>, use_self: bool) 
     let mut rs: Vec<TokenStream2> = Vec::with_capacity(fields.len());
     let mut eq: Vec<TokenStream2> = Vec::with_capacity(fields.len());
     for (i, f) in fields.iter().enumerate() {
-        // Generate the common identifier
+        // Generate the common identifier(s)
         let (ident, span): (String, Span) = f
             .ident
             .as_ref()
             .map(|i| (i.to_string(), i.span()))
             .unwrap_or_else(|| (if use_self { i.to_string() } else { format!("field{i}") }, f.span()));
+
         // Generate the left- and right versions
-        let (lident, rident): (TokenStream2, TokenStream2) = if use_self && f.ident.is_none() {
-            (LitInt::new(&ident, span).to_token_stream(), LitInt::new(&ident, span).to_token_stream())
-        } else if use_self {
-            (Ident::new(&ident, span).to_token_stream(), Ident::new(&ident, span).to_token_stream())
-        } else {
-            (Ident::new(&format!("l{ident}"), span).to_token_stream(), Ident::new(&format!("r{ident}"), span).to_token_stream())
+        let (lident, rident): (TokenStream2, TokenStream2) = match (use_self, f.ident.is_some()) {
+            (true, true) => {
+                let ident = Ident::new(&ident, span).to_token_stream();
+                ls.push(ident.clone());
+                rs.push(ident.clone());
+                (ident.clone(), ident)
+            },
+            (true, false) => {
+                let ident = LitInt::new(&ident, span).to_token_stream();
+                ls.push(ident.clone());
+                rs.push(ident.clone());
+                (ident.clone(), ident)
+            },
+            (false, true) => {
+                let ident = Ident::new(&ident, span);
+                let left = Ident::new(&format!("l{ident}"), span);
+                let right = Ident::new(&format!("r{ident}"), span);
+                ls.push(quote! { #ident: #left });
+                rs.push(quote! { #ident: #right });
+                (left.to_token_stream(), right.to_token_stream())
+            },
+            (false, false) => {
+                let lident = Ident::new(&format!("l{ident}"), span).to_token_stream();
+                let rident = Ident::new(&format!("r{ident}"), span).to_token_stream();
+                ls.push(lident.clone());
+                rs.push(rident.clone());
+                (lident, rident)
+            },
         };
 
         // Inject into the lists
@@ -59,8 +82,6 @@ fn generate_field_idents(fields: &Punctuated<Field, Token![,]>, use_self: bool) 
         } else {
             eq.push(quote! { #lident == #rident });
         }
-        ls.push(lident);
-        rs.push(rident);
     }
     (ls, rs, eq)
 }
@@ -112,8 +133,9 @@ fn build_eq_impl(input: &DeriveInput) -> TokenStream2 {
             // Build the full match
             if !variants.is_empty() {
                 quote! {
-                    match self {
+                    match (self, other) {
                         #(#variants)*
+                        _ => false,
                     }
                 }
             } else {

@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:09:44
 //  Last edited:
-//    09 Jan 2025, 02:16:02
+//    09 Jan 2025, 20:25:42
 //  Auto updated?
 //    Yes
 //
@@ -59,16 +59,13 @@ fn generate_field_idents_and_tys(fields: &Punctuated<Field, Token![,]>, use_self
 /// # Returns
 /// A [`TokenStream2`] that can be used for the impl.
 fn build_hash_impl(input: &DeriveInput) -> TokenStream2 {
-    let sname = input.ident.to_string();
-
     // Match based on the data type
     match &input.data {
         Data::Enum(e) => {
             // Build the impls for every variant
             let mut variants: Vec<TokenStream2> = Vec::with_capacity(e.variants.len());
-            for variant in &e.variants {
+            for (i, variant) in e.variants.iter().enumerate() {
                 let variant_name = &variant.ident;
-                let svariant_name = variant_name.to_string();
 
                 // Write depending on the variant form
                 variants.push(match &variant.fields {
@@ -77,6 +74,7 @@ fn build_hash_impl(input: &DeriveInput) -> TokenStream2 {
                         let impls = fields.iter().zip(tys).map(|(f, t)| quote! { <#t as ::std::hash::Hash>::hash(#f, __state); });
                         quote! {
                             Self::#variant_name { #(#fields),* } => {
+                                <usize as ::std::hash::Hash>::hash(&#i, __state);
                                 #(#impls)*
                             },
                         }
@@ -85,12 +83,17 @@ fn build_hash_impl(input: &DeriveInput) -> TokenStream2 {
                         let (fields, tys) = generate_field_idents_and_tys(&u.unnamed, false);
                         let impls = fields.iter().zip(tys).map(|(f, t)| quote! { <#t as ::std::hash::Hash>::hash(#f, __state); });
                         quote! {
-                            Self::#variant_name { #(#fields),* } => {
+                            Self::#variant_name(#(#fields),*) => {
+                                <usize as ::std::hash::Hash>::hash(&#i, __state);
                                 #(#impls)*
                             },
                         }
                     },
-                    Fields::Unit => quote! { Self::#variant_name => ::std::write!(__f, ::std::concat!(#sname, "::", #svariant_name)), },
+                    Fields::Unit => quote! {
+                        Self::#variant_name => {
+                            <usize as ::std::hash::Hash>::hash(&#i, __state);
+                        },
+                    },
                 });
             }
 
@@ -107,20 +110,20 @@ fn build_hash_impl(input: &DeriveInput) -> TokenStream2 {
         },
         Data::Struct(s) => match &s.fields {
             Fields::Named(n) => {
-                let (fields, tys) = generate_field_idents_and_tys(&n.named, false);
+                let (fields, tys) = generate_field_idents_and_tys(&n.named, true);
                 let impls = fields.iter().zip(tys).map(|(f, t)| quote! { <#t as ::std::hash::Hash>::hash(&self.#f, __state); });
                 quote! {
                     #(#impls)*
                 }
             },
             Fields::Unnamed(u) => {
-                let (fields, tys) = generate_field_idents_and_tys(&u.unnamed, false);
+                let (fields, tys) = generate_field_idents_and_tys(&u.unnamed, true);
                 let impls = fields.iter().zip(tys).map(|(f, t)| quote! { <#t as ::std::hash::Hash>::hash(&self.#f, __state); });
                 quote! {
                     #(#impls)*
                 }
             },
-            Fields::Unit => quote! { ::std::write!(__f, #sname) },
+            Fields::Unit => TokenStream2::new(),
         },
         Data::Union(_) => todo!(),
     }

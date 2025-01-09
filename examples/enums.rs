@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:56:13
 //  Last edited:
-//    09 Jan 2025, 01:24:32
+//    09 Jan 2025, 20:26:28
 //  Auto updated?
 //    Yes
 //
@@ -12,35 +12,48 @@
 //!   Shows that the crate works for enums.
 //
 
+use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::Debug;
+use better_derive::{Debug, Eq, Hash, PartialEq};
+
+
+/***** HELPER FUNCTIONS *****/
+#[inline]
+fn hash<T: std::hash::Hash>(obj: T) -> u64 {
+    let mut state = DefaultHasher::default();
+    obj.hash(&mut state);
+    state.finish()
+}
+
+
+
 
 
 /***** EXAMPLES *****/
 /// Example empty struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 #[allow(unused)]
 enum Foo {}
 
 /// Example tuple struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 enum Bar {
     Variant1((), bool, String),
 }
 
 /// Example struct struct as usual.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 enum Baz {
     Variant1 { a: (), b: bool, c: String },
 }
 
 
 
-struct DontImplementDebug;
+struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 enum PhantomEnum<T> {
     Variant1 { _f: PhantomData<T> },
 }
@@ -66,11 +79,27 @@ fn main() {
     );
 
     assert_eq!(
-        format!("{:?}", PhantomEnum::<DontImplementDebug>::Variant1 { _f: PhantomData }),
-        "PhantomEnum::Variant1 { _f: PhantomData<enums::DontImplementDebug> }"
+        format!("{:?}", PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }),
+        "PhantomEnum::Variant1 { _f: PhantomData<enums::DontImplementAnything> }"
     );
     assert_eq!(
-        format!("{:#?}", PhantomEnum::<DontImplementDebug>::Variant1 { _f: PhantomData }),
-        "PhantomEnum::Variant1 {\n    _f: PhantomData<enums::DontImplementDebug>,\n}"
+        format!("{:#?}", PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }),
+        "PhantomEnum::Variant1 {\n    _f: PhantomData<enums::DontImplementAnything>,\n}"
     );
+
+
+
+    // NOTE: Can't construct of course
+    // assert!(Foo == Foo);
+    assert!(Bar::Variant1((), true, "Hello, world!".into()) == Bar::Variant1((), true, "Hello, world!".into()));
+    assert!(Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() } == Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() });
+    assert!(PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData } == PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData });
+
+
+
+    // NOTE: Can't construct of course
+    // assert_eq!(hash(Foo), 0);
+    assert_eq!(hash(Bar::Variant1((), true, "Hello, world!".into())), 17152124978856657821);
+    assert_eq!(hash(Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() }), 17152124978856657821);
+    assert_eq!(hash(PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }), 13646096770106105413);
 }
