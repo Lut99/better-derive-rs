@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:56:13
 //  Last edited:
-//    26 Dec 2024, 13:03:24
+//    09 Jan 2025, 01:24:32
 //  Auto updated?
 //    Yes
 //
@@ -14,7 +14,7 @@
 
 use std::marker::PhantomData;
 
-use debug::Debug;
+use better_derive::Debug;
 
 
 /***** EXAMPLES *****/

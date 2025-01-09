@@ -1,7 +1,14 @@
-# CHANGELOG for the `datalog`-crate
-This file keeps track of notable changes to the `datalog`-crate.
+# CHANGELOG for the `better-derive`-crate
+This file keeps track of notable changes to the `better-derive`-crate.
 
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
+
+
+## v1.0.0 - 2025-01-09
+Renamed to the `better-derive` crate. **(BREAKING)**
+
+### Added
+- The `Eq`, `Hash` and `PartialEq` macros.
 
 
 ## v0.1.0 - 2024-12-26
