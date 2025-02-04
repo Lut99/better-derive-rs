@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:56:13
 //  Last edited:
-//    09 Jan 2025, 20:26:28
+//    04 Feb 2025, 16:31:45
 //  Auto updated?
 //    Yes
 //
@@ -15,7 +15,7 @@
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::{Debug, Eq, Hash, PartialEq};
+use better_derive::{Clone, Debug, Eq, Hash, PartialEq};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -32,18 +32,18 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 /***** EXAMPLES *****/
 /// Example empty struct as usual.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[allow(unused)]
 enum Foo {}
 
 /// Example tuple struct as usual.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Bar {
     Variant1((), bool, String),
 }
 
 /// Example struct struct as usual.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Baz {
     Variant1 { a: (), b: bool, c: String },
 }
@@ -53,7 +53,7 @@ enum Baz {
 struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum PhantomEnum<T> {
     Variant1 { _f: PhantomData<T> },
 }
@@ -64,6 +64,16 @@ enum PhantomEnum<T> {
 
 /***** ENTRYPOINT *****/
 fn main() {
+    // NOTE: Can't construct of course
+    // assert_eq!(Foo.clone(), Foo);
+    assert_eq!(Bar::Variant1((), true, "Hello, world!".into()).clone(), Bar::Variant1((), true, "Hello, world!".into()));
+    assert_eq!(Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() }.clone(), Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() });
+    assert_eq!(PhantomEnum::<DontImplementAnything>::Variant1 { _f: PhantomData }.clone(), PhantomEnum::<DontImplementAnything>::Variant1 {
+        _f: PhantomData,
+    });
+
+
+
     // NOTE: Can't construct, of course
     // assert_eq!(format!("{:?}", Foo), ???);
     // assert_eq!(format!("{:#?}", Foo), ???);

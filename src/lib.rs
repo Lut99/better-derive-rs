@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 11:47:57
 //  Last edited:
-//    09 Jan 2025, 02:16:20
+//    04 Feb 2025, 15:26:31
 //  Auto updated?
 //    Yes
 //
@@ -87,6 +87,7 @@
 //
 
 // Modules
+mod clone;
 mod debug;
 mod eq;
 mod extract;
@@ -98,6 +99,33 @@ use proc_macro::TokenStream;
 
 
 /***** MACROS *****/
+/// Defines a [`Clone`](::std::Clone)-like derive macro that's more lenient to generics.
+///
+/// In particular, the default derive macro enforces that all _generics_ implement
+/// [`Clone`](std::clone::Clone). This is, however, too strict. Instead, all that's needed is that
+/// the _fields_ implement it, which may or may not require the generics to do so.
+///
+/// You can use this macro in exactly the same way as the builtin one.
+///
+/// # Examples
+/// ```rust
+/// use std::marker::PhantomData;
+///
+/// use better_derive::Clone;
+///
+/// struct ClonelessType;
+///
+/// #[derive(Clone)]
+/// struct PhantomStruct<T> {
+///     _t: PhantomData<T>,
+/// }
+///
+/// let p = PhantomStruct { _t: PhantomData::<&mut ()> }.clone();
+/// ```
+#[inline]
+#[proc_macro_derive(Clone)]
+pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
+
 /// Defines a [`Debug`](::std::Debug)-like derive macro that's more lenient to generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement

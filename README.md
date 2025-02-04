@@ -1,5 +1,5 @@
 # better-derive-rs
-A small Rust crate that provides alternatives for Rust's builtin `Debug`-, `Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated impls.
+A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Debug`-, `Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated impls.
 
 
 ## Installation
@@ -10,7 +10,7 @@ better-derive = { git = "https://github.com/Lut99/better-derive-rs" }
 
 You can also use a specific version by adding the appropriate tag:
 ```toml
-better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.0.1" }
+better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.1.0" }
 ```
 
 
@@ -46,6 +46,7 @@ Since `PhantomData` implements `Debug` regardless of whether `T` does, this mean
 
 ### Supported macros
 The following macros find a counterpart in this crate:
+- `Clone`
 - `Debug`
 - `Eq`
 - `Hash`
