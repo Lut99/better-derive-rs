@@ -7,6 +7,7 @@ The project uses [semantic versioning](https://semver.org). As such, breaking ch
 ## v1.1.0 - 2025-02-04
 ### Added
 - The `Clone` derive macro.
+- The `Copy` derive macro.
 
 ### Changed
 - Updated `proc-macro2` and `syn` dependencies to latest versions.

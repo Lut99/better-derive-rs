@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:12:07
 //  Last edited:
-//    04 Feb 2025, 16:30:20
+//    04 Feb 2025, 16:36:47
 //  Auto updated?
 //    Yes
 //
@@ -15,7 +15,7 @@
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::{Clone, Debug, Eq, Hash, PartialEq};
+use better_derive::{Clone, Copy, Debug, Eq, Hash, PartialEq};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -32,7 +32,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 /***** EXAMPLES *****/
 /// Example unit struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Foo;
 
 /// Example tuple struct as usual.
@@ -52,7 +52,7 @@ struct Baz {
 struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct PhantomStruct<T> {
     _f: PhantomData<T>,
 }
@@ -67,6 +67,19 @@ fn main() {
     assert_eq!(Bar((), true, "Hello, world!".into()).clone(), Bar((), true, "Hello, world!".into()));
     assert_eq!(Baz { a: (), b: true, c: "Hello, world!".into() }.clone(), Baz { a: (), b: true, c: "Hello, world!".into() });
     assert_eq!(PhantomStruct::<DontImplementAnything> { _f: PhantomData }.clone(), PhantomStruct::<DontImplementAnything> { _f: PhantomData });
+
+
+
+    {
+        let f = Foo;
+        let a = f;
+        assert_eq!(f, a);
+    }
+    {
+        let p = PhantomStruct::<DontImplementAnything> { _f: PhantomData };
+        let a = p;
+        assert_eq!(p, a);
+    }
 
 
 

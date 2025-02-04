@@ -4,13 +4,14 @@
 //  Created:
 //    26 Dec 2024, 11:47:57
 //  Last edited:
-//    04 Feb 2025, 15:26:31
+//    04 Feb 2025, 16:39:07
 //  Auto updated?
 //    Yes
 //
 //  Description:
-//!   A small Rust crate that provides alternatives for Rust's builtin `Debug`-, `Eq`-, `Hash`- and
-//!   `PartialEq`-derive macros that apply more accurate trait bounds for generated impls.
+//!   A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Copy`-, `Debug`-,
+//!   `Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated
+//!   impls.
 //!   
 //!   
 //!   # Installation
@@ -21,7 +22,7 @@
 //!   
 //!   You can also use a specific version by adding the appropriate tag:
 //!   ```toml
-//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.0.0" }
+//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.1.0" }
 //!   ```
 //!   
 //!   
@@ -59,6 +60,8 @@
 //!   
 //!   ## Supported macros
 //!   The following macros find a counterpart in this crate:
+//!   - `Clone`
+//!   - `Copy`
 //!   - `Debug`
 //!   - `Eq`
 //!   - `Hash`
@@ -88,6 +91,7 @@
 
 // Modules
 mod clone;
+mod copy;
 mod debug;
 mod eq;
 mod extract;
@@ -125,6 +129,35 @@ use proc_macro::TokenStream;
 #[inline]
 #[proc_macro_derive(Clone)]
 pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
+
+/// Defines a [`Copy`](::std::Copy)-like derive macro that's more lenient to generics.
+///
+/// In particular, the default derive macro enforces that all _generics_ implement
+/// [`Copy`](std::marker::Copy). This is, however, too strict. Instead, all that's needed is that
+/// the _fields_ implement it, which may or may not require the generics to do so.
+///
+/// You can use this macro in exactly the same way as the builtin one.
+///
+/// # Examples
+/// ```rust
+/// use std::marker::PhantomData;
+///
+/// use better_derive::{Clone, Copy};
+///
+/// struct CopylessType;
+///
+/// #[derive(Clone, Copy)]
+/// struct PhantomStruct<T> {
+///     _t: PhantomData<T>,
+/// }
+///
+/// let p = PhantomStruct { _t: PhantomData::<&mut ()> };
+/// let q = p;
+/// let r = p;
+/// ```
+#[inline]
+#[proc_macro_derive(Copy)]
+pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 
 /// Defines a [`Debug`](::std::Debug)-like derive macro that's more lenient to generics.
 ///
