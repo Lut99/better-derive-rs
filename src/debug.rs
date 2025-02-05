@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:09:44
 //  Last edited:
-//    09 Jan 2025, 01:55:35
+//    05 Feb 2025, 15:42:36
 //  Auto updated?
 //    Yes
 //
@@ -19,7 +19,7 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned as _;
 use syn::{Data, DeriveInput, Field, Fields, Ident, LitInt, Path, PathArguments, PathSegment, Token, parse_macro_input};
 
-use crate::extract::extract_generics;
+use crate::common::{extract_generics, filter_skipped_variants_and_fields};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -139,7 +139,6 @@ fn build_fmt_impl(input: &DeriveInput) -> TokenStream2 {
 
 
 
-
 /***** LIBRARY *****/
 /// Actual implementation of the `Debug` derive macro.
 ///
@@ -149,7 +148,12 @@ fn build_fmt_impl(input: &DeriveInput) -> TokenStream2 {
 /// # Returns
 /// A [`TokenSream2`] encoding the impl.
 pub fn debug(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let mut input = parse_macro_input!(input as DeriveInput);
+
+    // Filter the input data
+    if let Err(err) = filter_skipped_variants_and_fields("debug", &mut input.data) {
+        return err.into_compile_error().into();
+    }
 
     // Extract the generics & fmts for the general impl
     let generics = extract_generics(&input, &Path {

@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:17:54
 //  Last edited:
-//    09 Jan 2025, 01:21:52
+//    05 Feb 2025, 15:20:33
 //  Auto updated?
 //    Yes
 //
@@ -19,7 +19,7 @@ use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::{DeriveInput, Ident, Path, PathArguments, PathSegment, parse_macro_input};
 
-use crate::extract::extract_generics;
+use crate::common::extract_generics;
 
 
 /***** LIBRARY *****/

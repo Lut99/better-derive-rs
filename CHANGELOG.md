@@ -4,6 +4,13 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v1.2.0 - 2025-02-05
+### Added
+- The `#[debug(skip)]`-attribute for the `Debug`-derive macro.
+- The `#[hash(skip)]`-attribute for the `Hash`-derive macro.
+- The `#[partial_eq(skip)]`-attribute for the `PartialEq`-derive macro.
+
+
 ## v1.1.0 - 2025-02-04
 ### Added
 - The `Clone` derive macro.

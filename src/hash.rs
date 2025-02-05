@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:09:44
 //  Last edited:
-//    09 Jan 2025, 20:25:42
+//    05 Feb 2025, 15:42:57
 //  Auto updated?
 //    Yes
 //
@@ -19,7 +19,7 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned as _;
 use syn::{Data, DeriveInput, Field, Fields, Ident, LitInt, Path, PathArguments, PathSegment, Token, Type, parse_macro_input};
 
-use crate::extract::extract_generics;
+use crate::common::{extract_generics, filter_skipped_variants_and_fields};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -142,7 +142,12 @@ fn build_hash_impl(input: &DeriveInput) -> TokenStream2 {
 /// # Returns
 /// A [`TokenSream2`] encoding the impl.
 pub fn hash(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let mut input = parse_macro_input!(input as DeriveInput);
+
+    // Filter the input data
+    if let Err(err) = filter_skipped_variants_and_fields("hash", &mut input.data) {
+        return err.into_compile_error().into();
+    }
 
     // Extract the generics & fmts for the general impl
     let generics = extract_generics(&input, &Path {
