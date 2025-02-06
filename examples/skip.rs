@@ -4,7 +4,7 @@
 //  Created:
 //    05 Feb 2025, 15:43:34
 //  Last edited:
-//    05 Feb 2025, 16:01:15
+//    06 Feb 2025, 15:32:45
 //  Auto updated?
 //    Yes
 //
@@ -38,13 +38,16 @@ pub struct Foo {
     #[hash(skip)]
     #[partial_eq(skip)]
     baz: u32,
+    // Note: you can also do this!
+    #[better_derive(skip)]
+    quz: u32,
 }
 
 
 
 fn main() {
-    let foo1 = Foo { bar: "Hello, world!".into(), baz: 42 };
-    let foo2 = Foo { bar: "Hello, world!".into(), baz: 43 };
+    let foo1 = Foo { bar: "Hello, world!".into(), baz: 42, quz: 420 };
+    let foo2 = Foo { bar: "Hello, world!".into(), baz: 43, quz: 421 };
     assert_eq!(format!("{:?}", foo1), "Foo { bar: \"Hello, world!\" }");
     assert!(foo1 == foo2);
     assert!(hash(foo1) == hash(foo2));

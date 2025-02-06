@@ -4,7 +4,7 @@
 //  Created:
 //    04 Feb 2025, 15:41:18
 //  Last edited:
-//    05 Feb 2025, 15:20:32
+//    06 Feb 2025, 10:34:11
 //  Auto updated?
 //    Yes
 //
@@ -146,7 +146,7 @@ pub fn clone(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     // Extract the generics & fmts for the general impl
-    let generics = extract_generics(&input, &Path {
+    let generics = match extract_generics("clone", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -155,7 +155,10 @@ pub fn clone(input: TokenStream) -> TokenStream {
             segments.push(PathSegment { ident: Ident::new("Clone".into(), Span::call_site()), arguments: PathArguments::None });
             segments
         },
-    });
+    }) {
+        Ok(gens) => gens,
+        Err(err) => return err.into_compile_error().into(),
+    };
     let clone = build_clone_impl(&input);
 
     // Done, build the impl

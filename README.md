@@ -10,7 +10,7 @@ better-derive = { git = "https://github.com/Lut99/better-derive-rs" }
 
 You can also use a specific version by adding the appropriate tag:
 ```toml
-better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.2.0" }
+better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.3.0" }
 ```
 
 
@@ -52,6 +52,26 @@ The following macros find a counterpart in this crate:
 - `Eq`
 - `Hash`
 - `PartialEq`
+
+### All macros: Defining bounds
+By default, the generated impls generate bounds of the shape for e.g. `Clone` as follows:
+```plain
+TYPE: Clone,
+```
+for every type `TYPE` that somehow refers to one of the generic bounds of the derived object. If this doesn't suit your needs, you can define your own list of types using the `#[better_derive(bound = (...))]`-macro:
+```rust
+use std::marker::PhantomData;
+use better_derive::Clone;
+
+// This emulates the standard behaviour
+#[derive(Clone)]
+#[clone(bound = (T))]
+// Equivalent to the attribute above, but for all the crate macros
+#[better_derive(bound = (T))]
+struct Foo<T> {
+    foo: PhantomData<T>,
+}
+```
 
 ### `Debug`, `Hash` and `PartialEq`: Skipping fields
 The `Debug`-, `Hash`- and `PartialEq` derive macros have some additional functionality: you can optionally ignore fields in the generated implementation.

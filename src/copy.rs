@@ -4,7 +4,7 @@
 //  Created:
 //    04 Feb 2025, 16:33:42
 //  Last edited:
-//    05 Feb 2025, 15:20:32
+//    06 Feb 2025, 10:34:18
 //  Auto updated?
 //    Yes
 //
@@ -34,7 +34,7 @@ pub fn copy(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     // Extract the generics & fmts for the general impl
-    let generics = extract_generics(&input, &Path {
+    let generics = match extract_generics("copy", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -43,7 +43,10 @@ pub fn copy(input: TokenStream) -> TokenStream {
             segments.push(PathSegment { ident: Ident::new("Copy".into(), Span::call_site()), arguments: PathArguments::None });
             segments
         },
-    });
+    }) {
+        Ok(gens) => gens,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
     // Done, build the impl
     let name = &input.ident;

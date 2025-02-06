@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 11:47:57
 //  Last edited:
-//    05 Feb 2025, 16:01:37
+//    06 Feb 2025, 15:49:39
 //  Auto updated?
 //    Yes
 //
@@ -22,7 +22,7 @@
 //!   
 //!   You can also use a specific version by adding the appropriate tag:
 //!   ```toml
-//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.2.0" }
+//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.3.0" }
 //!   ```
 //!   
 //!   
@@ -66,6 +66,28 @@
 //!   - `Eq`
 //!   - `Hash`
 //!   - `PartialEq`
+//!   
+//!   ## All macros: Defining bounds
+//!   By default, the generated impls generate bounds of the shape for e.g. `Clone` as follows:
+//!   ```plain
+//!   TYPE: Clone,
+//!   ```
+//!   for every type `TYPE` that somehow refers to one of the generic bounds of the derived object. If
+//!   this doesn't suit your needs, you can define your own list of types using the
+//!   `#[better_derive(bound = (...))]`-macro:
+//!   ```ignore
+//!   use std::marker::PhantomData;
+//!   use better_derive::Clone;
+//!   
+//!   // This emulates the standard behaviour
+//!   #[derive(Clone)]
+//!   #[clone(bound = (T))]
+//!   // Equivalent to the attribute above, but for all the crate macros
+//!   #[better_derive(bound = (T))]
+//!   struct Foo<T> {
+//!       foo: PhantomData<T>,
+//!   }
+//!   ```
 //!   
 //!   ## `Debug`, `Hash` and `PartialEq`: Skipping fields
 //!   The `Debug`-, `Hash`- and `PartialEq` derive macros have some additional functionality: you can
@@ -136,7 +158,7 @@ use proc_macro::TokenStream;
 /// let p = PhantomStruct { _t: PhantomData::<&mut ()> }.clone();
 /// ```
 #[inline]
-#[proc_macro_derive(Clone)]
+#[proc_macro_derive(Clone, attributes(better_derive, clone))]
 pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
 
 /// Defines a [`Copy`](::std::Copy)-like derive macro that's more lenient to generics.
@@ -165,7 +187,7 @@ pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
 /// let r = p;
 /// ```
 #[inline]
-#[proc_macro_derive(Copy)]
+#[proc_macro_derive(Copy, attributes(better_derive, copy))]
 pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 
 /// Defines a [`Debug`](::std::Debug)-like derive macro that's more lenient to generics.
@@ -217,7 +239,7 @@ pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 /// )
 /// ```
 #[inline]
-#[proc_macro_derive(Debug, attributes(debug))]
+#[proc_macro_derive(Debug, attributes(better_derive, debug))]
 pub fn debug(input: TokenStream) -> TokenStream { debug::debug(input) }
 
 /// Defines an [`Eq`](::std::Eq)-like derive macro that's more lenient to generics.
@@ -247,7 +269,7 @@ pub fn debug(input: TokenStream) -> TokenStream { debug::debug(input) }
 /// );
 /// ```
 #[inline]
-#[proc_macro_derive(Eq)]
+#[proc_macro_derive(Eq, attributes(better_derive, eq))]
 pub fn eq(input: TokenStream) -> TokenStream { eq::eq(input) }
 
 /// Defines a [`Hash`](::std::Hash)-like derive macro that's more lenient to generics.
@@ -303,7 +325,7 @@ pub fn eq(input: TokenStream) -> TokenStream { eq::eq(input) }
 /// );
 /// ```
 #[inline]
-#[proc_macro_derive(Hash, attributes(hash))]
+#[proc_macro_derive(Hash, attributes(better_derive, hash))]
 pub fn hash(input: TokenStream) -> TokenStream { hash::hash(input) }
 
 /// Defines a [`PartialEq`](::std::PartialEq)-like derive macro that's more lenient to generics.
@@ -355,5 +377,5 @@ pub fn hash(input: TokenStream) -> TokenStream { hash::hash(input) }
 /// );
 /// ```
 #[inline]
-#[proc_macro_derive(PartialEq, attributes(partial_eq))]
+#[proc_macro_derive(PartialEq, attributes(better_derive, partial_eq))]
 pub fn partial_eq(input: TokenStream) -> TokenStream { partial_eq::partial_eq(input) }

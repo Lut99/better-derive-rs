@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:17:54
 //  Last edited:
-//    05 Feb 2025, 15:20:33
+//    06 Feb 2025, 10:34:31
 //  Auto updated?
 //    Yes
 //
@@ -34,7 +34,7 @@ pub fn eq(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     // Extract the generics & fmts for the general impl
-    let generics = extract_generics(&input, &Path {
+    let generics = match extract_generics("eq", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -43,7 +43,10 @@ pub fn eq(input: TokenStream) -> TokenStream {
             segments.push(PathSegment { ident: Ident::new("Eq".into(), Span::call_site()), arguments: PathArguments::None });
             segments
         },
-    });
+    }) {
+        Ok(gens) => gens,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
     // Done, build the impl
     let name = &input.ident;

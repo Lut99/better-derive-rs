@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:27:30
 //  Last edited:
-//    05 Feb 2025, 15:43:11
+//    06 Feb 2025, 15:44:56
 //  Auto updated?
 //    Yes
 //
@@ -18,7 +18,7 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{ToTokens, quote};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned as _;
-use syn::{Data, DeriveInput, Field, Fields, Ident, LitInt, Path, PathArguments, PathSegment, Token, parse_macro_input};
+use syn::{Data, DeriveInput, Field, Fields, Ident, LitInt, Path, PathArguments, PathSegment, Token, Type, parse_macro_input};
 
 use crate::common::{extract_generics, filter_skipped_variants_and_fields};
 
@@ -77,10 +77,11 @@ fn generate_field_idents(fields: &Punctuated<Field, Token![,]>, use_self: bool) 
         };
 
         // Inject into the lists
+        let ty: &Type = &f.ty;
         if use_self {
-            eq.push(quote! { self.#lident == self.#rident });
+            eq.push(quote! { <#ty as ::std::cmp::PartialEq>::eq(&self.#lident, &__other.#rident) });
         } else {
-            eq.push(quote! { #lident == #rident });
+            eq.push(quote! { <#ty as ::std::cmp::PartialEq>::eq(#lident, #rident) });
         }
     }
     (ls, rs, eq)
@@ -133,7 +134,7 @@ fn build_eq_impl(input: &DeriveInput) -> TokenStream2 {
             // Build the full match
             if !variants.is_empty() {
                 quote! {
-                    match (self, other) {
+                    match (self, __other) {
                         #(#variants)*
                         _ => false,
                     }
@@ -182,7 +183,7 @@ pub fn partial_eq(input: TokenStream) -> TokenStream {
     }
 
     // Extract the generics & fmts for the general impl
-    let generics = extract_generics(&input, &Path {
+    let generics = match extract_generics("partial_eq", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -191,7 +192,10 @@ pub fn partial_eq(input: TokenStream) -> TokenStream {
             segments.push(PathSegment { ident: Ident::new("PartialEq".into(), Span::call_site()), arguments: PathArguments::None });
             segments
         },
-    });
+    }) {
+        Ok(gens) => gens,
+        Err(err) => return err.into_compile_error().into(),
+    };
     let eq = build_eq_impl(&input);
 
     // Done, build the impl
@@ -200,7 +204,7 @@ pub fn partial_eq(input: TokenStream) -> TokenStream {
     quote! {
         impl #impl_gen ::std::cmp::PartialEq for #name #ty_gen #where_clause {
             #[inline]
-            fn eq(&self, other: &Self) -> bool {
+            fn eq(&self, __other: &Self) -> bool {
                 #eq
             }
         }

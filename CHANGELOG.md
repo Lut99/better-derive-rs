@@ -4,6 +4,18 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v1.3.0 - 2025-02-06
+### Added
+- The toplevel `#[better_derive(bounds = (...))]`-attribute for manually deciding which types to bind on.
+- The `#[better_derive(...)]`-attribute as an alias for every (applicable) macro-specific attribute.
+
+### Changed
+- Relaxed the bound generation algorithm by only binding types that involve generics.
+
+### Fixed
+- `PartialEq` impl not being correct (always comparing self with self).
+
+
 ## v1.2.0 - 2025-02-05
 ### Added
 - The `#[debug(skip)]`-attribute for the `Debug`-derive macro.

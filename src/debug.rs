@@ -4,7 +4,7 @@
 //  Created:
 //    09 Jan 2025, 01:09:44
 //  Last edited:
-//    05 Feb 2025, 15:42:36
+//    06 Feb 2025, 10:34:24
 //  Auto updated?
 //    Yes
 //
@@ -156,7 +156,7 @@ pub fn debug(input: TokenStream) -> TokenStream {
     }
 
     // Extract the generics & fmts for the general impl
-    let generics = extract_generics(&input, &Path {
+    let generics = match extract_generics("debug", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -165,7 +165,10 @@ pub fn debug(input: TokenStream) -> TokenStream {
             segments.push(PathSegment { ident: Ident::new("Debug".into(), Span::call_site()), arguments: PathArguments::None });
             segments
         },
-    });
+    }) {
+        Ok(gens) => gens,
+        Err(err) => return err.into_compile_error().into(),
+    };
     let fmt = build_fmt_impl(&input);
 
     // Done, build the impl
