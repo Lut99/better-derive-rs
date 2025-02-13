@@ -4,6 +4,15 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v1.4.0 - 2025-02-13
+### Added
+- The `Ord` derive macro.
+- The `PartialOrd` derive macro.
+
+### Fixed
+- The crate having the wrong version number.
+
+
 ## v1.3.0 - 2025-02-06
 ### Added
 - The toplevel `#[better_derive(bounds = (...))]`-attribute for manually deciding which types to bind on.

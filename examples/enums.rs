@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:56:13
 //  Last edited:
-//    04 Feb 2025, 16:31:45
+//    13 Feb 2025, 15:29:25
 //  Auto updated?
 //    Yes
 //
@@ -12,10 +12,11 @@
 //!   Shows that the crate works for enums.
 //
 
+use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::{Clone, Debug, Eq, Hash, PartialEq};
+use better_derive::{Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -32,18 +33,18 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 /***** EXAMPLES *****/
 /// Example empty struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 #[allow(unused)]
 enum Foo {}
 
 /// Example tuple struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 enum Bar {
     Variant1((), bool, String),
 }
 
 /// Example struct struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 enum Baz {
     Variant1 { a: (), b: bool, c: String },
 }
@@ -53,7 +54,7 @@ enum Baz {
 struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 enum PhantomEnum<T> {
     Variant1 { _f: PhantomData<T> },
 }
@@ -104,6 +105,20 @@ fn main() {
     assert!(Bar::Variant1((), true, "Hello, world!".into()) == Bar::Variant1((), true, "Hello, world!".into()));
     assert!(Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() } == Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() });
     assert!(PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData } == PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData });
+
+
+
+    // NOTE: Can't construct of course
+    // assert_eq!(Foo.cmp(&Foo), Ordering::Equal);
+    assert_eq!(Bar::Variant1((), true, "Hello, world!".into()).cmp(&Bar::Variant1((), true, "Goodbye, world!".into())), Ordering::Greater);
+    assert_eq!(
+        Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() }.cmp(&Baz::Variant1 { a: (), b: true, c: "Howdy, world!".into() }),
+        Ordering::Less
+    );
+    assert_eq!(
+        PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }.cmp(&PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }),
+        Ordering::Equal
+    );
 
 
 

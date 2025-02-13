@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 11:47:57
 //  Last edited:
-//    06 Feb 2025, 15:49:39
+//    13 Feb 2025, 15:35:50
 //  Auto updated?
 //    Yes
 //
@@ -65,7 +65,9 @@
 //!   - `Debug`
 //!   - `Eq`
 //!   - `Hash`
+//!   - `Ord`
 //!   - `PartialEq`
+//!   - `PartialOrd`
 //!   
 //!   ## All macros: Defining bounds
 //!   By default, the generated impls generate bounds of the shape for e.g. `Clone` as follows:
@@ -89,9 +91,9 @@
 //!   }
 //!   ```
 //!   
-//!   ## `Debug`, `Hash` and `PartialEq`: Skipping fields
-//!   The `Debug`-, `Hash`- and `PartialEq` derive macros have some additional functionality: you can
-//!   optionally ignore fields in the generated implementation.
+//!   ## `Debug`, `Hash`, `PartialEq` and `PartialOrd`: Skipping fields
+//!   The `Debug`-, `Hash`-, `PartialEq`- and `PartialOrd` derive macros have some additional
+//!   functionality: you can optionally ignore fields in the generated implementation.
 //!   Specifically, you can annotate fields with `#[debug(skip)]`, `#[hash(skip)]` and/or
 //!   `#[partial_eq(skip)]`, respectively, to have it omitted.
 //!   
@@ -127,14 +129,17 @@ mod copy;
 mod debug;
 mod eq;
 mod hash;
+mod ord;
 mod partial_eq;
+mod partial_ord;
 
 // Imports
 use proc_macro::TokenStream;
 
 
 /***** MACROS *****/
-/// Defines a [`Clone`](::std::Clone)-like derive macro that's more lenient to generics.
+/// Defines a [`Clone`](derive@::std::clone::Clone)-like derive macro that's more lenient to
+/// generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`Clone`](std::clone::Clone). This is, however, too strict. Instead, all that's needed is that
@@ -161,7 +166,8 @@ use proc_macro::TokenStream;
 #[proc_macro_derive(Clone, attributes(better_derive, clone))]
 pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
 
-/// Defines a [`Copy`](::std::Copy)-like derive macro that's more lenient to generics.
+/// Defines a [`Copy`](derive@::std::marker::Copy)-like derive macro that's more lenient to
+/// generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`Copy`](std::marker::Copy). This is, however, too strict. Instead, all that's needed is that
@@ -190,7 +196,8 @@ pub fn clone(input: TokenStream) -> TokenStream { clone::clone(input) }
 #[proc_macro_derive(Copy, attributes(better_derive, copy))]
 pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 
-/// Defines a [`Debug`](::std::Debug)-like derive macro that's more lenient to generics.
+/// Defines a [`Debug`](derive@::std::fmt::Debug)-like derive macro that's more lenient to
+/// generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`Debug`](std::fmt::Debug). This is, however, too strict. Instead, all that's needed is that
@@ -235,14 +242,14 @@ pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 /// assert_eq!(
 ///     format!("{:?}", PhantomStruct::<DebuglessType> { _t: PhantomData }),
 ///     "PhantomStruct { _t: \
-///      PhantomData<rust_out::main::_doctest_main_src_lib_rs_110_0::DebuglessType> }"
+///      PhantomData<rust_out::main::_doctest_main_src_lib_rs_228_0::DebuglessType> }"
 /// )
 /// ```
 #[inline]
 #[proc_macro_derive(Debug, attributes(better_derive, debug))]
 pub fn debug(input: TokenStream) -> TokenStream { debug::debug(input) }
 
-/// Defines an [`Eq`](::std::Eq)-like derive macro that's more lenient to generics.
+/// Defines an [`Eq`](derive@::std::cmp::Eq)-like derive macro that's more lenient to generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`Eq`](std::cmp::Eq). This is, however, too strict. Instead, all that's needed is that the
@@ -272,7 +279,7 @@ pub fn debug(input: TokenStream) -> TokenStream { debug::debug(input) }
 #[proc_macro_derive(Eq, attributes(better_derive, eq))]
 pub fn eq(input: TokenStream) -> TokenStream { eq::eq(input) }
 
-/// Defines a [`Hash`](::std::Hash)-like derive macro that's more lenient to generics.
+/// Defines a [`Hash`](derive@::std::hash::Hash)-like derive macro that's more lenient to generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`Hash`](std::cmp::Hash). This is, however, too strict. Instead, all that's needed is
@@ -328,7 +335,64 @@ pub fn eq(input: TokenStream) -> TokenStream { eq::eq(input) }
 #[proc_macro_derive(Hash, attributes(better_derive, hash))]
 pub fn hash(input: TokenStream) -> TokenStream { hash::hash(input) }
 
-/// Defines a [`PartialEq`](::std::PartialEq)-like derive macro that's more lenient to generics.
+/// Defines an [`Ord`](derive@::std::cmp::Ord)-like derive macro that's more lenient to generics.
+///
+/// In particular, the default derive macro enforces that all _generics_ implement
+/// [`Ord`](std::cmp::Ord). This is, however, too strict. Instead, all that's needed is that the
+/// _fields_ implement it, which may or may not require the generics to do so.
+///
+/// This macro will generate an implementation with the bounds described as above, but that will
+/// otherwise refer to the implementation of [`PartialOrd`](std::cmp::PartialOrd). As such, if
+/// you're deriving it, it is recommended to use [our derive macro](derive@PartialOrd) as well.
+///
+/// You can use this macro in exactly the same way as the builtin one.
+///
+/// # Skipping fields
+/// You can optionally omit fields from the generated implementation with the
+/// `#[ord(skip)]`-attribute:
+/// ```rust
+/// use better_derive::{Eq, Ord, PartialEq, PartialOrd};
+///
+/// #[derive(Ord, PartialEq, Eq, PartialOrd)]
+/// struct Foo {
+///     // Something very interesting we want to compare
+///     dynamic_field: String,
+///     // Something very boring that never changes anyway
+///     #[ord(skip)]
+///     static_field:  (),
+/// }
+/// ```
+/// Importantly, adding the skip-attribute **also removes that field's type from the trait
+/// bounds**. If the field has a tricky type to implement `Ord` for, or is very expensive to
+/// compare but will never vary between two instances, you can simply not do it by using this
+/// attribute.
+///
+///
+///
+/// # Examples
+/// ```rust
+/// use std::marker::PhantomData;
+///
+/// use better_derive::{Eq, Ord, PartialEq, PartialOrd};
+///
+/// struct OrdlessType;
+///
+/// #[derive(PartialEq, Ord, Eq, PartialOrd)]
+/// struct PhantomStruct<T> {
+///     _t: PhantomData<T>,
+/// }
+///
+/// assert!(
+///     !(PhantomStruct::<OrdlessType> { _t: PhantomData }
+///         > PhantomStruct::<OrdlessType> { _t: PhantomData })
+/// );
+/// ```
+#[inline]
+#[proc_macro_derive(Ord, attributes(better_derive, ord))]
+pub fn ord(input: TokenStream) -> TokenStream { ord::ord(input) }
+
+/// Defines a [`PartialEq`](derive@::std::cmp::PartialEq)-like derive macro that's more lenient to
+/// generics.
 ///
 /// In particular, the default derive macro enforces that all _generics_ implement
 /// [`PartialEq`](std::cmp::PartialEq). This is, however, too strict. Instead, all that's needed is
@@ -347,7 +411,7 @@ pub fn hash(input: TokenStream) -> TokenStream { hash::hash(input) }
 ///     // Something very interesting we want to compare
 ///     dynamic_field: String,
 ///     // Something very boring that never changes anyway
-///     #[debug(skip)]
+///     #[partial_eq(skip)]
 ///     static_field:  (),
 /// }
 /// ```
@@ -379,3 +443,56 @@ pub fn hash(input: TokenStream) -> TokenStream { hash::hash(input) }
 #[inline]
 #[proc_macro_derive(PartialEq, attributes(better_derive, partial_eq))]
 pub fn partial_eq(input: TokenStream) -> TokenStream { partial_eq::partial_eq(input) }
+
+/// Defines a [`PartialOrd`](derive@::std::cmp::PartialOrd)-like derive macro that's more lenient
+/// to generics.
+///
+/// In particular, the default derive macro enforces that all _generics_ implement
+/// [`PartialOrd`](std::cmp::PartialOrd). This is, however, too strict. Instead, all that's needed
+/// is that the _fields_ implement it, which may or may not require the generics to do so.
+///
+/// You can use this macro in exactly the same way as the builtin one.
+///
+/// # Skipping fields
+/// You can optionally omit fields from the generated implementation with the
+/// `#[partial_ord(skip)]`-attribute:
+/// ```rust
+/// use better_derive::{PartialEq, PartialOrd};
+///
+/// #[derive(PartialEq, PartialOrd)]
+/// struct Foo {
+///     // Something very interesting we want to compare
+///     dynamic_field: String,
+///     // Something very boring that never changes anyway
+///     #[partial_ord(skip)]
+///     static_field:  (),
+/// }
+/// ```
+/// Importantly, adding the skip-attribute **also removes that field's type from the trait
+/// bounds**. If the field has a tricky type to implement `PartialOrd` for, or is very expensive to
+/// compare but will never vary between two instances, you can simply not do it by using this
+/// attribute.
+///
+///
+///
+/// # Examples
+/// ```rust
+/// use std::marker::PhantomData;
+///
+/// use better_derive::{PartialEq, PartialOrd};
+///
+/// struct PartialOrdlessType;
+///
+/// #[derive(PartialEq, PartialOrd)]
+/// struct PhantomStruct<T> {
+///     _t: PhantomData<T>,
+/// }
+///
+/// assert!(
+///     !(PhantomStruct::<PartialOrdlessType> { _t: PhantomData }
+///         > PhantomStruct::<PartialOrdlessType> { _t: PhantomData })
+/// );
+/// ```
+#[inline]
+#[proc_macro_derive(PartialOrd, attributes(better_derive, partial_ord))]
+pub fn partial_ord(input: TokenStream) -> TokenStream { partial_ord::partial_ord(input) }

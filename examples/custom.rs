@@ -4,7 +4,7 @@
 //  Created:
 //    06 Feb 2025, 11:51:12
 //  Last edited:
-//    06 Feb 2025, 15:43:05
+//    13 Feb 2025, 15:31:57
 //  Auto updated?
 //    Yes
 //
@@ -12,10 +12,11 @@
 //!   Showcases the use of defining custom trait bounds.
 //
 
+use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
 
-use better_derive::{Clone, Debug, Eq, Hash, PartialEq};
+use better_derive::{Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -32,21 +33,21 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 /***** EXAMPLE STRUCTS *****/
 /// First half of the co-dependent struct.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Foo<T> {
     foo: Wrapper<T>,
     bar: Bar<T>,
 }
 
 /// Second half of the co-dependent struct.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[better_derive(bound = (Wrapper<T>))]
 struct Bar<T> {
     foos: Vec<Foo<T>>,
 }
 
 /// Some common ancestor.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Wrapper<T>(PhantomData<T>);
 
 
@@ -62,6 +63,7 @@ fn main() {
     assert!(foo1.clone() == foo1);
     assert!(format!("{foo1:?}") == "Foo { foo: Wrapper(PhantomData<&str>), bar: Bar { foos: [] } }");
     assert!(foo1 == foo1);
+    assert_eq!(foo1.partial_cmp(&foo2), Some(Ordering::Less));
     assert!(hash(&foo1) == hash(&foo1));
     assert!(foo1 != foo2);
 }

@@ -1,6 +1,6 @@
 [package]
 name = "better-derive"
-version = "1.2.0"
+version = "1.4.0"
 edition = "2021"
 repository = "https://github.com/Lut99/better-derive-rs"
 description = """
@@ -60,7 +60,9 @@ The following macros find a counterpart in this crate:
 - `Debug`
 - `Eq`
 - `Hash`
+- `Ord`
 - `PartialEq`
+- `PartialOrd`
 
 ## All macros: Defining bounds
 By default, the generated impls generate bounds of the shape for e.g. `Clone` as follows:
@@ -84,9 +86,9 @@ struct Foo<T> {
 }
 ```
 
-## `Debug`, `Hash` and `PartialEq`: Skipping fields
-The `Debug`-, `Hash`- and `PartialEq` derive macros have some additional functionality: you can
-optionally ignore fields in the generated implementation.
+## `Debug`, `Hash`, `PartialEq` and `PartialOrd`: Skipping fields
+The `Debug`-, `Hash`-, `PartialEq`- and `PartialOrd` derive macros have some additional
+functionality: you can optionally ignore fields in the generated implementation.
 Specifically, you can annotate fields with `#[debug(skip)]`, `#[hash(skip)]` and/or
 `#[partial_eq(skip)]`, respectively, to have it omitted.
 

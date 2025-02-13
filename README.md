@@ -10,7 +10,7 @@ better-derive = { git = "https://github.com/Lut99/better-derive-rs" }
 
 You can also use a specific version by adding the appropriate tag:
 ```toml
-better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.3.0" }
+better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.4.0" }
 ```
 
 
@@ -51,7 +51,9 @@ The following macros find a counterpart in this crate:
 - `Debug`
 - `Eq`
 - `Hash`
+- `Ord`
 - `PartialEq`
+- `PartialOrd`
 
 ### All macros: Defining bounds
 By default, the generated impls generate bounds of the shape for e.g. `Clone` as follows:
@@ -73,8 +75,8 @@ struct Foo<T> {
 }
 ```
 
-### `Debug`, `Hash` and `PartialEq`: Skipping fields
-The `Debug`-, `Hash`- and `PartialEq` derive macros have some additional functionality: you can optionally ignore fields in the generated implementation.
+### `Debug`, `Hash`, `PartialEq` and `PartialOrd`: Skipping fields
+The `Debug`-, `Hash`-, `PartialEq`- and `PartialOrd` derive macros have some additional functionality: you can optionally ignore fields in the generated implementation.
 Specifically, you can annotate fields with `#[debug(skip)]`, `#[hash(skip)]` and/or `#[partial_eq(skip)]`, respectively, to have it omitted.
 
 See the respective macro's docs for more information, or see the [`skip.rs`](./examples/skip.rs)-example in the repository.

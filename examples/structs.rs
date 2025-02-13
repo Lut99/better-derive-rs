@@ -4,7 +4,7 @@
 //  Created:
 //    26 Dec 2024, 12:12:07
 //  Last edited:
-//    05 Feb 2025, 15:26:49
+//    13 Feb 2025, 11:43:50
 //  Auto updated?
 //    Yes
 //
@@ -12,10 +12,11 @@
 //!   Shows that the crate works for structs.
 //
 
+use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
-use better_derive::{Clone, Copy, Debug, Eq, Hash, PartialEq};
+use better_derive::{Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
 /***** HELPER FUNCTIONS *****/
@@ -32,15 +33,15 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 /***** EXAMPLES *****/
 /// Example unit struct as usual.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 struct Foo;
 
 /// Example tuple struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 struct Bar((), bool, String);
 
 /// Example struct struct as usual.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 struct Baz {
     a: (),
     b: bool,
@@ -52,7 +53,7 @@ struct Baz {
 struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
 struct PhantomStruct<T> {
     _f: PhantomData<T>,
 }
@@ -105,6 +106,16 @@ fn main() {
     assert!(Bar((), true, "Hello, world!".into()) == Bar((), true, "Hello, world!".into()));
     assert!(Baz { a: (), b: true, c: "Hello, world!".into() } == Baz { a: (), b: true, c: "Hello, world!".into() });
     assert!(PhantomStruct::<DontImplementAnything> { _f: PhantomData } == PhantomStruct::<DontImplementAnything> { _f: PhantomData });
+
+
+
+    assert_eq!(Foo.cmp(&Foo), Ordering::Equal);
+    assert_eq!(Bar((), true, "Hello, world!".into()).cmp(&Bar((), true, "Goodbye, world!".into())), Ordering::Greater);
+    assert_eq!(Baz { a: (), b: true, c: "Hello, world!".into() }.cmp(&Baz { a: (), b: true, c: "Howdy, world!".into() }), Ordering::Less);
+    assert_eq!(
+        PhantomStruct::<DontImplementAnything> { _f: PhantomData }.cmp(&PhantomStruct::<DontImplementAnything> { _f: PhantomData }),
+        Ordering::Equal
+    );
 
 
 
