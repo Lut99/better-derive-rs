@@ -8,6 +8,9 @@ The project uses [semantic versioning](https://semver.org). As such, breaking ch
 ### Added
 - The `Ord` derive macro.
 - The `PartialOrd` derive macro.
+    - Note: this one's actually relatively complex due to the potential inclusion of discriminants
+      while ordering. For now, it uses a simple assumption where discriminants are always literals.
+      For a more complex implementation, check the <https://github.com/Lut99/const-eval-rs>-crate.
 
 ### Fixed
 - The crate having the wrong version number.
