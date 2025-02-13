@@ -1,5 +1,5 @@
 # better-derive-rs
-A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Copy`-, `Debug`-, `Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated impls.
+A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Copy`-, `Debug`-, `Eq`-, `Hash`-, `Ord`-, `PartialEq`- and `PartialOrd`-derive macros that apply more accurate trait bounds for generated impls.
 
 
 ## Installation

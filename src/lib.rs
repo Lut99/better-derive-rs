@@ -4,14 +4,14 @@
 //  Created:
 //    26 Dec 2024, 11:47:57
 //  Last edited:
-//    13 Feb 2025, 15:35:50
+//    13 Feb 2025, 15:37:22
 //  Auto updated?
 //    Yes
 //
 //  Description:
 //!   A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Copy`-, `Debug`-,
-//!   `Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated
-//!   impls.
+//!   `Eq`-, `Hash`-, `Ord`-, `PartialEq`- and `PartialOrd`-derive macros that apply more accurate trait
+//!   bounds for generated impls.
 //!   
 //!   
 //!   # Installation

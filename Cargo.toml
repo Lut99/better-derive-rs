@@ -5,8 +5,8 @@ edition = "2021"
 repository = "https://github.com/Lut99/better-derive-rs"
 description = """
 A small Rust crate that provides alternatives for Rust's builtin `Clone`-, `Copy`-, `Debug`-,
-`Eq`-, `Hash`- and `PartialEq`-derive macros that apply more accurate trait bounds for generated
-impls.
+`Eq`-, `Hash`-, `Ord`-, `PartialEq`- and `PartialOrd`-derive macros that apply more accurate trait
+bounds for generated impls.
 
 
 # Installation
