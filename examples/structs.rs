@@ -16,6 +16,8 @@ use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
+#[cfg(feature = "serde")]
+use better_derive::Serialize;
 use better_derive::{Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
@@ -34,14 +36,22 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 /***** EXAMPLES *****/
 /// Example unit struct as usual.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct Foo;
 
 /// Example tuple struct as usual.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct Bar((), bool, String);
+
+/// Special newtype struct
+#[cfg(feature = "serde")]
+#[derive(Serialize)]
+struct BarNewtype(bool);
 
 /// Example struct struct as usual.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct Baz {
     a: (),
     b: bool,
@@ -54,6 +64,7 @@ struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct PhantomStruct<T> {
     _f: PhantomData<T>,
 }
@@ -123,4 +134,18 @@ fn main() {
     assert_eq!(hash(Bar((), true, "Hello, world!".into())), 13134715174715772495);
     assert_eq!(hash(Baz { a: (), b: true, c: "Hello, world!".into() }), 13134715174715772495);
     assert_eq!(hash(PhantomStruct::<DontImplementAnything> { _f: PhantomData }), 15130871412783076140);
+
+
+
+    #[cfg(feature = "serde")]
+    {
+        assert_eq!(serde_json::to_string(&Foo).unwrap(), "null");
+        assert_eq!(serde_json::to_string(&Bar((), true, "Hello, world!".into())).unwrap(), "[null,true,\"Hello, world!\"]");
+        assert_eq!(serde_json::to_string(&BarNewtype(true)).unwrap(), "true");
+        assert_eq!(
+            serde_json::to_string(&Baz { a: (), b: true, c: "Hello, world!".into() }).unwrap(),
+            "{\"a\":null,\"b\":true,\"c\":\"Hello, world!\"}"
+        );
+        assert_eq!(serde_json::to_string(&PhantomStruct::<DontImplementAnything> { _f: PhantomData }).unwrap(), "{\"_f\":null}");
+    }
 }

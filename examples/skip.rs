@@ -17,6 +17,8 @@
 use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher as _};
 
+#[cfg(feature = "serde")]
+use better_derive::Serialize;
 use better_derive::{Debug, Hash, PartialEq, PartialOrd};
 
 
@@ -31,6 +33,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 
 // If you use `cargo expand --example skip`, you can see the bounds on `u32` aren't even derived!
 #[derive(Debug, Hash, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Foo {
     // This is interesting!
     bar: String,
@@ -39,6 +42,7 @@ pub struct Foo {
     #[hash(skip)]
     #[partial_eq(skip)]
     #[partial_ord(skip)]
+    #[serialize(skip)]
     baz: u32,
     // Note: you can also do this!
     #[better_derive(skip)]
@@ -53,5 +57,7 @@ fn main() {
     assert_eq!(format!("{:?}", foo1), "Foo { bar: \"Hello, world!\" }");
     assert!(foo1 == foo2);
     assert_eq!(foo1.partial_cmp(&foo2), Some(Ordering::Equal));
+    #[cfg(feature = "serde")]
+    assert_eq!(serde_json::to_string(&foo1).unwrap(), "{\"bar\":\"Hello, world!\"}");
     assert!(hash(foo1) == hash(foo2));
 }

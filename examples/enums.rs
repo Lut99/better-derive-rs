@@ -16,6 +16,8 @@ use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher as _};
 use std::marker::PhantomData;
 
+#[cfg(feature = "serde")]
+use better_derive::Serialize;
 use better_derive::{Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
@@ -34,17 +36,22 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 /***** EXAMPLES *****/
 /// Example empty struct as usual.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[allow(unused)]
 enum Foo {}
 
 /// Example tuple struct as usual.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 enum Bar {
     Variant1((), bool, String),
+    #[cfg(feature = "serde")]
+    Variant2(bool),
 }
 
 /// Example struct struct as usual.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 enum Baz {
     Variant1 { a: (), b: bool, c: String },
 }
@@ -55,6 +62,7 @@ struct DontImplementAnything;
 
 /// Special struct with generics that don't have to be debug.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 enum PhantomEnum<T> {
     Variant1 { _f: PhantomData<T> },
 }
@@ -127,4 +135,22 @@ fn main() {
     assert_eq!(hash(Bar::Variant1((), true, "Hello, world!".into())), 17152124978856657821);
     assert_eq!(hash(Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() }), 17152124978856657821);
     assert_eq!(hash(PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }), 13646096770106105413);
+
+
+
+    #[cfg(feature = "serde")]
+    {
+        // NOTE: Can't construct of course
+        // assert_eq!(serde_json::to_string(&Foo).unwrap(), "null");
+        assert_eq!(serde_json::to_string(&Bar::Variant1((), true, "Hello, world!".into())).unwrap(), "{\"Variant1\":[null,true,\"Hello, world!\"]}");
+        assert_eq!(serde_json::to_string(&Bar::Variant2(true)).unwrap(), "{\"Variant2\":true}");
+        assert_eq!(
+            serde_json::to_string(&Baz::Variant1 { a: (), b: true, c: "Hello, world!".into() }).unwrap(),
+            "{\"Variant1\":{\"a\":null,\"b\":true,\"c\":\"Hello, world!\"}}"
+        );
+        assert_eq!(
+            serde_json::to_string(&PhantomEnum::Variant1::<DontImplementAnything> { _f: PhantomData }).unwrap(),
+            "{\"Variant1\":{\"_f\":null}}"
+        );
+    }
 }

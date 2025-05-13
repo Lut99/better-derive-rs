@@ -16,6 +16,8 @@ use std::cmp::Ordering;
 use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
 
+#[cfg(feature = "serde")]
+use better_derive::Serialize;
 use better_derive::{Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd};
 
 
@@ -34,6 +36,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 /***** EXAMPLE STRUCTS *****/
 /// First half of the co-dependent struct.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct Foo<T> {
     foo: Wrapper<T>,
     bar: Bar<T>,
@@ -41,6 +44,7 @@ struct Foo<T> {
 
 /// Second half of the co-dependent struct.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[better_derive(bound = (Wrapper<T>))]
 struct Bar<T> {
     foos: Vec<Foo<T>>,
@@ -48,6 +52,7 @@ struct Bar<T> {
 
 /// Some common ancestor.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 struct Wrapper<T>(PhantomData<T>);
 
 
@@ -66,4 +71,6 @@ fn main() {
     assert_eq!(foo1.partial_cmp(&foo2), Some(Ordering::Less));
     assert!(hash(&foo1) == hash(&foo1));
     assert!(foo1 != foo2);
+    #[cfg(feature = "serde")]
+    assert_eq!(serde_json::to_string(&foo1).unwrap(), "{\"foo\":null,\"bar\":{\"foos\":[]}}");
 }
