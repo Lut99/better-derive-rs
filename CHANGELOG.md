@@ -4,6 +4,14 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v1.5.0 - 2025-05-13
+### Added
+- The `Serialize` derive macro from [`serde`](https://serde.rs).
+
+### Changed
+- Minimum required dependency versions are now more lenient, as this _is_ a library and not a binary.
+
+
 ## v1.4.0 - 2025-02-13
 ### Added
 - The `Ord` derive macro.
