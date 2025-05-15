@@ -1,6 +1,6 @@
 [package]
 name = "better-derive"
-version = "2.0.0"
+version = "3.0.0"
 edition = "2021"
 repository = "https://github.com/Lut99/better-derive-rs"
 description = """
@@ -17,7 +17,7 @@ better-derive = { git = "https://github.com/Lut99/better-derive-rs" }
 
 You can also use a specific version by adding the appropriate tag:
 ```toml
-better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v1.5.0" }
+better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v3.0.0" }
 ```
 
 
@@ -74,31 +74,30 @@ By default, the generated impls generate bounds of the shape for e.g. `Clone` as
 TYPE: Clone,
 ```
 for every type `TYPE` somehow a field of your base object (directly or in a variant) that depends
-on a generic. If this doesn't suit your needs, you can define your own bounds using the
-`#[better_derive(bound(...))]`-attribute (or the macro-specific attribute, e.g.,
-`#[clone(bound(...))]`.
+on a generic. If this doesn't suit your needs, you can define your own bounds using the following
+attributes:
+1. `#[TRAIT(impl_gen = <...>)]`, where `TRAIT` is one of the traits or `better_derive` to define it
+   for all those derived, defines the generics that are available in the custom implementation.
+   I.e., it is the one immediately following `impl` in an `impl`-signature. If you're defining
+   bounds, you can use `r#trait` to refer to the "current" trait (useful in case you're using
+   `better_derive`).
 
-It has the following syntax:
-```plain
-#[better_derive(bound(<GEN> where CLAUSES))]
-```
-where `GEN` is defining the generic parameters, and `CLAUSES` a list of where-clause to constrain
-them. You can use `r#trait` as an alias for the trait currently being derived.
+   By default, when omitted, this defaults to whatever you give in your implementation.
+2. `#[TRAIT(type_gen = <...>)]`, where `TRAIT` is one of the traits or `better_derive` to define it
+   for all those derived, defines the generic arguments passed to your type. I.e., it is the one
+   immediately following your type name in an `impl`-signature.
 
-For example:
-```rust
-use std::marker::PhantomData;
-use better_derive::Clone;
+   By default, when omitted, this defaults to the subset of `impl_gen` that is present in the
+   derived object's bounds (i.e., only `'a` and `T` in `struct Foo<'a, T>`).
+3. `#[TRAIT(bound = (...))]`, where `TRAIT` is one of the traits or `better_derive` to define it
+   for all those derived, defines additional `where` clauses to put on the generics defined by
+   `impl_gen`. You can use `r#trait` to refer to the "current" trait (useful in case you're using
+   `better_derive`).
 
-// This emulates the standard behaviour
-#[derive(Clone)]
-#[clone(bound(<T> where T: Clone))]
-// Equivalent to the attribute above, but for all the crate macros
-#[better_derive(bound(<T> where T: r#trait))]
-struct Foo<T> {
-    foo: PhantomData<T>,
-}
-```
+   By default, defaults to a list of all field types (directly or in variants) of your derived
+   object which refer to one of the parameters in `impl_gen`, with a restriction that they must
+   implement `r#trait`. I.e., the default behaviour describes above.
+
 See the [`custom.rs`](./examples/custom.rs)-example in the repository.
 
 ## `Debug`, `Hash`, `PartialEq`, `PartialOrd` and `Serialize`: Skipping fields
@@ -145,7 +144,15 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0"
 quote = { version = "1.0", default-features = false }
-syn = { version = "2.0", default-features = false, features = ["clone-impls", "derive", "extra-traits", "parsing", "printing", "proc-macro", "visit"] }
+syn = { version = "2.0", default-features = false, features = [
+    "clone-impls",
+    "derive",
+    "extra-traits",
+    "parsing",
+    "printing",
+    "proc-macro",
+    "visit",
+] }
 
 
 [dev-dependencies]

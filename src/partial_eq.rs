@@ -183,7 +183,7 @@ pub fn partial_eq(input: TokenStream) -> TokenStream {
     }
 
     // Extract the generics & fmts for the general impl
-    let generics = match extract_generics("partial_eq", &input.attrs, &input, &Path {
+    let (impl_gen, ty_gen, where_clause) = match extract_generics("partial_eq", &input.attrs, &input, &Path {
         leading_colon: Some(Default::default()),
         segments:      {
             let mut segments = Punctuated::new();
@@ -200,7 +200,6 @@ pub fn partial_eq(input: TokenStream) -> TokenStream {
 
     // Done, build the impl
     let name = &input.ident;
-    let (impl_gen, ty_gen, where_clause) = generics.split_for_impl();
     quote! {
         impl #impl_gen ::std::cmp::PartialEq for #name #ty_gen #where_clause {
             #[inline]

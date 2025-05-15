@@ -42,7 +42,7 @@ pub struct Foo {
     #[hash(skip)]
     #[partial_eq(skip)]
     #[partial_ord(skip)]
-    #[serialize(skip)]
+    #[cfg_attr(feature = "serde", serialize(skip))]
     baz: u32,
     // Note: you can also do this!
     #[better_derive(skip)]

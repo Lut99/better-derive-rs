@@ -48,7 +48,8 @@ struct Foo<T> {
 /// so we only have to specify it once.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[better_derive(bound(<T> where Wrapper<T>: r#trait))]
+// NOTE: Any of these can be omitted to default to the normal behaviour
+#[better_derive(impl_gen = <T>, type_gen = <T>, bound = (Wrapper<T>: r#trait))]
 struct Bar<T> {
     foos: Vec<Foo<T>>,
 }

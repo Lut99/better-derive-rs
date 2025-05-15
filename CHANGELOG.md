@@ -4,6 +4,19 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v3.0.0 - 2025-05-15
+### Added
+- Added toplevel `#[better_derive(impl = ...)]` syntax to describe impl generics.
+- Added toplevel `#[better_derive(type = ...)]` syntax to describe type generics.
+- Re-added toplevel `#[better_derive(bound = ...)]` syntax to describe where-clause bounds.
+
+### Removed
+- Toplevel `#[better_derive(bound(<TY...> where CLAUSE...))]` syntax. **(BREAKING)**
+
+### Fixed
+- Some tests not passing.
+
+
 ## v2.0.0 - 2025-05-15
 ### Added
 - Toplevel `#[better_derive(bound(<TY...> where CLAUSE...))]` to define custom bounds for the impl.
