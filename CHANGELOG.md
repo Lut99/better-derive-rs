@@ -14,7 +14,7 @@ The project uses [semantic versioning](https://semver.org). As such, breaking ch
 - Toplevel `#[better_derive(bound(<TY...> where CLAUSE...))]` syntax. **(BREAKING)**
 
 ### Fixed
-- Some tests not passing.
+- Some tests not passing when not all features are used.
 
 
 ## v2.0.0 - 2025-05-15
