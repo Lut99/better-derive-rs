@@ -18,7 +18,7 @@ use syn::spanned::Spanned as _;
 use syn::visit::Visit;
 use syn::{
     Attribute, Data, DeriveInput, Error, Field, Fields, GenericParam, Generics, Ident, Meta, Path, PredicateType, Token, TraitBound,
-    TraitBoundModifier, Type, TypeParamBound, WherePredicate,
+    TraitBoundModifier, Type, TypeParamBound, WhereClause, WherePredicate,
 };
 
 
@@ -39,15 +39,14 @@ pub const COMMON_ATTR_NAME: &'static str = "better_derive";
 /// - `attrs`: The list of [`Attribute`]s to parse.
 ///
 /// # Returns
-/// A list of [`Type`]s that represent the types to introduce the usual suspect trait bounds for,
-/// or [`None`] if none were given (and automatic derivation should be used).
+/// A list of params and a matching where clause that shalt be the bound for this impl, or [`None`]
+/// if none were given (and automatic derivation should be used).
 ///
 /// # Errors
 /// Note that this function can error if an attribute belonging to th(i|e)s(e) macro(s) was given,
 /// but we failed to understand it.
-fn parse_toplevel_attrs(base_ident: &str, attrs: &[Attribute]) -> Result<Option<Vec<Type>>, Error> {
-    let mut found: bool = false;
-    let mut results: Vec<Type> = Vec::new();
+fn parse_toplevel_attrs(base_ident: &str, attrs: &[Attribute]) -> Result<Option<(Punctuated<GenericParam, Token![,]>, WhereClause)>, Error> {
+    let mut result: Option<(Punctuated<GenericParam, Token![,]>, WhereClause)> = None;
     for attr in attrs {
         match &attr.meta {
             Meta::List(l) if l.path.is_ident(COMMON_ATTR_NAME) || l.path.is_ident(base_ident) => {
@@ -55,9 +54,8 @@ fn parse_toplevel_attrs(base_ident: &str, attrs: &[Attribute]) -> Result<Option<
                 let attrs: Punctuated<ToplevelAttr, Token![,]> = Attribute::parse_args_with(attr, Punctuated::parse_terminated)?;
                 for attr in attrs {
                     match attr {
-                        ToplevelAttr::Bound(tys) => {
-                            found = true;
-                            results.extend(tys);
+                        ToplevelAttr::Bound(params, bounds) => {
+                            result = Some((params, bounds));
                         },
                     }
                 }
@@ -69,7 +67,7 @@ fn parse_toplevel_attrs(base_ident: &str, attrs: &[Attribute]) -> Result<Option<
     }
 
     // Return appropriately
-    if found { Ok(Some(results)) } else { Ok(None) }
+    Ok(result)
 }
 
 /// Parses `#[SOME_IDENT(skip)]` on field attributes.
@@ -115,16 +113,22 @@ fn parse_field_attrs(base_ident: &str, attrs: &[Attribute]) -> Result<bool, Erro
 /// Defines a parsable attribute for the toplevel.
 enum ToplevelAttr {
     /// The user is defining a type to bind.
-    Bound(Punctuated<Type, Token![,]>),
+    Bound(Punctuated<GenericParam, Token![,]>, WhereClause),
 }
 impl Parse for ToplevelAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
         if ident == "bound" || ident == "bounds" {
-            input.parse::<Token![=]>()?;
+            // Parse the `(...)`
             let content;
             syn::parenthesized!(content in input);
-            Ok(Self::Bound(Punctuated::parse_terminated(&content)?))
+
+            // Parse the generics
+            let gen: Generics = content.parse()?;
+            let clause: WhereClause = content.parse()?;
+
+            // Return that
+            Ok(Self::Bound(gen.params, clause))
         } else {
             Err(input.error(format!("Unknown attribute {ident:?}")))
         }
@@ -196,25 +200,23 @@ pub fn extract_generics(base_ident: &str, attrs: &[Attribute], input: &DeriveInp
     let mut generics = input.generics.clone();
 
     // Find the list from the attributes if given
-    if let Some(tys) = parse_toplevel_attrs(base_ident, attrs)? {
-        // Extend the where-clauses with the appropriate bounds
-        generics.make_where_clause().predicates.extend(tys.into_iter().map(|ty| {
-            WherePredicate::Type(PredicateType {
-                lifetimes:   None,
-                bounded_ty:  ty,
-                colon_token: Default::default(),
-                bounds:      {
-                    let mut bounds = Punctuated::new();
-                    bounds.push(TypeParamBound::Trait(TraitBound {
-                        paren_token: Default::default(),
-                        modifier: TraitBoundModifier::None,
-                        lifetimes: None,
-                        path: target.clone(),
-                    }));
-                    bounds
-                },
-            })
-        }));
+    if let Some((params, mut clause)) = parse_toplevel_attrs(base_ident, attrs)? {
+        // Replace any occurrance of `r#trait` with the current one.
+        for pred in &mut clause.predicates {
+            if let WherePredicate::Type(pred) = pred {
+                for bound in &mut pred.bounds {
+                    if let TypeParamBound::Trait(trt) = bound {
+                        if trt.path.is_ident("r#trait") {
+                            trt.path = target.clone();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update the generics to match
+        generics.params = params;
+        generics.where_clause = Some(clause);
 
         // OK, done!
         return Ok(generics);

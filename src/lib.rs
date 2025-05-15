@@ -33,7 +33,7 @@
 //!   `Debug`-bound on all _generics_, it generates it for all _fields types_.
 //!
 //!   For example:
-//!   ```rust
+//!   ```ignore
 //!   use std::fmt::{Debug, Formatter, Result as FResult};
 //!   use std::marker::PhantomData;
 //!
@@ -78,22 +78,33 @@
 //!   ```plain
 //!   TYPE: Clone,
 //!   ```
-//!   for every type `TYPE` that somehow refers to one of the generic bounds of the derived object. If
-//!   this doesn't suit your needs, you can define your own list of types using the
-//!   `#[better_derive(bound = (...))]`-macro:
+//!   for every type `TYPE` somehow a field of your base object (directly or in a variant) that depends
+//!   on a generic. If this doesn't suit your needs, you can define your own bounds using the
+//!   `#[better_derive(bound(...))]`-attribute (or the macro-specific attribute, e.g.,
+//!   `#[clone(bound(...))]`.
+//!
+//!   It has the following syntax:
+//!   ```ignore
+//!   #[better_derive(bound(<GEN> where CLAUSES))]
+//!   ```
+//!   where `GEN` is defining the generic parameters, and `CLAUSES` a list of where-clause to constrain
+//!   them. You can use `r#trait` as an alias for the trait currently being derived.
+//!
+//!   For example:
 //!   ```ignore
 //!   use std::marker::PhantomData;
 //!   use better_derive::Clone;
 //!
 //!   // This emulates the standard behaviour
 //!   #[derive(Clone)]
-//!   #[clone(bound = (T))]
+//!   #[clone(bound(<T> where T: Clone))]
 //!   // Equivalent to the attribute above, but for all the crate macros
-//!   #[better_derive(bound = (T))]
+//!   #[better_derive(bound(<T> where T: r#trait))]
 //!   struct Foo<T> {
 //!       foo: PhantomData<T>,
 //!   }
 //!   ```
+//!   See the [`custom.rs`](./examples/custom.rs)-example in the repository.
 //!
 //!   ## `Debug`, `Hash`, `PartialEq`, `PartialOrd` and `Serialize`: Skipping fields
 //!   The `Debug`-, `Hash`-, `PartialEq`-, `PartialOrd`- and `Serialize` derive macros have some
@@ -252,7 +263,7 @@ pub fn copy(input: TokenStream) -> TokenStream { copy::copy(input) }
 /// assert_eq!(
 ///     format!("{:?}", PhantomStruct::<DebuglessType> { _t: PhantomData }),
 ///     "PhantomStruct { _t: \
-///      PhantomData<rust_out::main::_doctest_main_src_lib_rs_228_0::DebuglessType> }"
+///      PhantomData<rust_out::main::_doctest_main_src_lib_rs_251_0::DebuglessType> }"
 /// )
 /// ```
 #[inline]
@@ -535,7 +546,7 @@ pub fn partial_ord(input: TokenStream) -> TokenStream { partial_ord::partial_ord
 ///     _t: PhantomData<T>,
 /// }
 ///
-/// let p = PhantomStruct { _t: PhantomData::<SerializelessType> }.clone();
+/// let p = serde_json::to_string(&PhantomStruct { _t: PhantomData::<SerializelessType> }).unwrap();
 /// ```
 #[inline]
 #[proc_macro_derive(Serialize, attributes(better_derive, serialize))]

@@ -43,9 +43,12 @@ struct Foo<T> {
 }
 
 /// Second half of the co-dependent struct.
+///
+/// Note the custom bound here! We use `r#trait` to abstract over the actual trait we're deriving,
+/// so we only have to specify it once.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[better_derive(bound = (Wrapper<T>))]
+#[better_derive(bound(<T> where Wrapper<T>: r#trait))]
 struct Bar<T> {
     foos: Vec<Foo<T>>,
 }

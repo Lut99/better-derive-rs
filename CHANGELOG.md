@@ -4,6 +4,17 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v2.0.0 - 2025-05-15
+### Added
+- Toplevel `#[better_derive(bound(<TY...> where CLAUSE...))]` to define custom bounds for the impl.
+
+### Removed
+- Toplevel `#[better_derive(bound = ...)]` syntax, as the new one is strictly more expressive. **(BREAKING)**
+
+### Fixed
+- Some tests not passing.
+
+
 ## v1.5.0 - 2025-05-13
 ### Added
 - The `Serialize` derive macro from [`serde`](https://serde.rs).

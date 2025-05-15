@@ -1,6 +1,6 @@
 [package]
 name = "better-derive"
-version = "1.5.0"
+version = "2.0.0"
 edition = "2021"
 repository = "https://github.com/Lut99/better-derive-rs"
 description = """
@@ -73,22 +73,33 @@ By default, the generated impls generate bounds of the shape for e.g. `Clone` as
 ```plain
 TYPE: Clone,
 ```
-for every type `TYPE` that somehow refers to one of the generic bounds of the derived object. If
-this doesn't suit your needs, you can define your own list of types using the
-`#[better_derive(bound = (...))]`-macro:
+for every type `TYPE` somehow a field of your base object (directly or in a variant) that depends
+on a generic. If this doesn't suit your needs, you can define your own bounds using the
+`#[better_derive(bound(...))]`-attribute (or the macro-specific attribute, e.g.,
+`#[clone(bound(...))]`.
+
+It has the following syntax:
+```plain
+#[better_derive(bound(<GEN> where CLAUSES))]
+```
+where `GEN` is defining the generic parameters, and `CLAUSES` a list of where-clause to constrain
+them. You can use `r#trait` as an alias for the trait currently being derived.
+
+For example:
 ```rust
 use std::marker::PhantomData;
 use better_derive::Clone;
 
 // This emulates the standard behaviour
 #[derive(Clone)]
-#[clone(bound = (T))]
+#[clone(bound(<T> where T: Clone))]
 // Equivalent to the attribute above, but for all the crate macros
-#[better_derive(bound = (T))]
+#[better_derive(bound(<T> where T: r#trait))]
 struct Foo<T> {
     foo: PhantomData<T>,
 }
 ```
+See the [`custom.rs`](./examples/custom.rs)-example in the repository.
 
 ## `Debug`, `Hash`, `PartialEq`, `PartialOrd` and `Serialize`: Skipping fields
 The `Debug`-, `Hash`-, `PartialEq`-, `PartialOrd`- and `Serialize` derive macros have some
