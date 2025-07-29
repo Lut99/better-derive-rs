@@ -4,6 +4,10 @@ This file keeps track of notable changes to the `better-derive`-crate.
 The project uses [semantic versioning](https://semver.org). As such, breaking changes are indicated by **(BREAKING)**.
 
 
+## v3.0.1 - 2025-05-15
+### Fixed
+- The `serde`-attribute not being recognized by the custom `Serialize`-macro.
+
 ## v3.0.0 - 2025-05-15
 ### Added
 - Added toplevel `#[better_derive(impl = ...)]` syntax to describe impl generics.

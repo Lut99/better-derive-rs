@@ -22,7 +22,7 @@
 //!
 //!   You can also use a specific version by adding the appropriate tag:
 //!   ```toml
-//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v3.0.0" }
+//!   better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v3.0.1" }
 //!   ```
 //!
 //!
@@ -548,5 +548,5 @@ pub fn partial_ord(input: TokenStream) -> TokenStream { partial_ord::partial_ord
 /// let p = serde_json::to_string(&PhantomStruct { _t: PhantomData::<SerializelessType> }).unwrap();
 /// ```
 #[inline]
-#[proc_macro_derive(Serialize, attributes(better_derive, serialize))]
+#[proc_macro_derive(Serialize, attributes(better_derive, serde, serialize))]
 pub fn serialize(input: TokenStream) -> TokenStream { serialize::serialize(input) }

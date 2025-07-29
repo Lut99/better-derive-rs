@@ -10,7 +10,7 @@ better-derive = { git = "https://github.com/Lut99/better-derive-rs" }
 
 You can also use a specific version by adding the appropriate tag:
 ```toml
-better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v3.0.0" }
+better-derive = { git = "https://github.com/Lut99/better-derive-rs", tag = "v3.0.1" }
 ```
 
 
